@@ -49,7 +49,7 @@ on a new line. Everything between `/` and the line end will be interpreted as a 
 + a_phio: a_phii + 180
 ```
 
-etc. An example can be found at `basic-shapes.mfg`. Currently it only contains parametrizations of the letter `O`, but I might expand it in the future.
+etc. Any line not beginning with `*`, `/` or `+` is ignored, allowing for a nice and literal documentation of the code. An example of this can be found at `basic-shapes.mfg`. Currently it only contains parametrizations of the letter `O`, but I might expand it in the future.
 
 ## Vim
 
