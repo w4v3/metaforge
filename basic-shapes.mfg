@@ -1,0 +1,198 @@
+~Basic Letter Shapes~
+
+This document provides some example parametrizations for letters in the Latin alphabet, for use with the MetaForge extension to FontForge. It also aims to be a type design reference for beginners (like me). Much of the content is based on the book "designing type" by Karen Cheng, while the parametrizations are the fruits of my analyses of various fonts.
+
+~Global font dimensions~
+
+For a uniform appearance, all the letters of a font should have their base sitting on a common line, the so-called baseline. Some letters, like ~p~, descend below this baseline, but the biggest part of a type takes place above it. The capital letters, like ~ABC~, have a uniform height, which, apart from ascenders like ~l~, is the maximum height of the letters in a font. In summary, every letter can be drawn inside a rectangular box of a universal size. This size is called the em size, as it used to be both the height and the width of the letter M. In FontForge, it is set to a unitless number which is supposed to indicate the scaling of the font:
+
+* em : 1024
+
+We can set the maximum height and depth of the box with respect to the baseline by setting the so-called ascent and descent, respectively:
+
+* asc : 0.8*em
+* desc : em - asc
+
+Some other parameters need to be initialized here to be accessible later on, they will be discussed when appropriate. Skip to the next section.
+
+*capheight:0
+*Oover:0
+*Osideratio:0
+*contrast:0
+*wide:0
+*thin:0
+
+~Letter design~
+
+The basic principle of letter design might be the following: Try to achieve uniform blackness (or "color") for the human observer, taking into account optical illusions. Here is a collection of such illusions:
+
+1. Vertical strokes appear wider than horizontal strokes of the same width. Therfore, make verticals a bit thinner than horizontals.
+2. Oval forms appear smaller than rectangular forms of the same height and width. Therefore, make oval forms a bit higher and wider.
+3. The base of a form looks smaller than its upper parts if they have the same size and form. Therefore, fill more space with the lower half.
+4. Vertical, parallel sides can appear to flex inward. Therefore, round them a bit outwards at the beginning and end.
+
+So let's begin the journey, going through all the letters of the alphabet and discussing their characteristics, starting with the capitals.
+
+/O
++widen:0
++thrust:0
++oblique:0
++Oht:0
++center:0
+
+The basic construction of the capital ~O~ requires an outside and an inside circle. In FontForge, this is easily achieved by using the ellipse tool to draw a circle, then a smaller one inside that circle, and then doing Element>Correct Direction. This creates four points, which need to be labeled like otop, olft, obot, ort, itop etc. to make the following examples work. The construction would involve at least two parameters: The diameters of outer and inner circle, or, equivalently, the width of the ~O~ and the stroke width of the font.
+
+* Owd: 0.7*em
++ Oht: Owd
+* wide: 0.1*em
+
+As Bézier curves cannot form a perfect circle, we need some way to approximate it. One possibility is to multiply the radius of the intended circle by a constant
+
+* curve: 0.5519150244
+
+Then, a (nearly) perfectly circular ~O~ could be defined like this:
+
++ lft : 0.05*em
++ rt : lft
++ obot_x: lft+Owd/2
++ obot_y: 0
++ otop_x: obot_x
++ otop_y: obot_y+Oht
++ olft_x: lft
++ olft_y: Oht/2
++ ort_x: olft_x+Owd
++ ort_y: olft_y
++ ibot_x: obot_x
++ ibot_y: obot_y+wide
++ itop_x: otop_x
++ itop_y: otop_y-wide
++ ilft_x: olft_x+wide
++ ilft_y: olft_y
++ irt_x: ort_x-wide
++ irt_y: ort_y
++ obot_ri: curve*Oht/2
++ obot_ro: obot_ri
++ otop_ri: obot_ri
++ otop_ro: otop_ri
++ olft_ri: curve*Owd/2
++ olft_ro: olft_ri
++ ort_ri: olft_ri
++ ort_ro: ort_ri
++ ibot_ri: curve*(Oht-2*wide)/2
++ ibot_ro: ibot_ri
++ itop_ri: ibot_ri
++ itop_ro: itop_ri
++ ilft_ri: curve*(Owd-2*wide)/2
++ ilft_ro: ilft_ri
++ irt_ri: ilft_ri
++ irt_ro: irt_ri
++ obot_phii: 0
++ obot_phio: obot_phii+180
++ otop_phii: obot_phio
++ otop_phio: otop_phii+180
++ olft_phii: obot_phii-90
++ olft_phio: olft_phii+180
++ ort_phii: olft_phio
++ ort_phio: ort_phii+180
++ ibot_phii: obot_phio
++ ibot_phio: ibot_phii+180
++ itop_phii: otop_phio
++ itop_phio: itop_phii+180
++ ilft_phii: olft_phio
++ ilft_phio: ilft_phii+180
++ irt_phii: ort_phio
++ irt_phio: irt_phii+180
+
+This might look intimidating, but by specifying every coordinate of every point, we have complete control over the shape now. Plus, as most points are defined in terms of other points, we only need to make few changes to have consistent effects on everything else. In particular, everything depends on the position of obot and olft, as well as the curvature at obot and ibot.
+
+We can now make some adaptations to this shape, depending on the overall design of our font. Even if a circular, geometric sans serif ~O~ is desired, some adjustments should be made to account for the illusions discussed above.
+
+In order to achieve regular appearance of the capital letters, let us introduce a parameter that controls the standard capital height:
+
+* capheight: 0.7*em
+
+Due to illusion (2), we would like to have the ~O~ extend a bit above the baseline, by 2% in this example (the "overshoot"):
+
+* Oover: 0.02
++ Oht: (1 + 2*Oover) * capheight
++ obot_y: -Oover*capheight
+
+For (3), the center of the circles can be moved about 1% upwards:
+
+* Oraise: 0.01
++ olft_y: Oht/2 - Oover*capheight + Oraise*Oht
+
+For (1), the top and bottom parts of the ~O~ should be thinner than the left and right parts. To this end, we should introduce a thin version of the stroke width, with a contrast parameter.
+
+* contrast: 9/10
+* thin: contrast*wide
++ ibot_y: obot_y+thin
++ itop_y: otop_y-thin
++ ibot_ri: curve*(Oht-2*thin)/2
+
+The inner oval is often wider than an ellipse at the base.
+
++ widen: 0.1
++ ibot_ri: (1+widen)*curve*(Oht-2*thin)/2
+
+The outer ellipse might be a circle, a bit wider, or more rectangular, depending on the style. It can also have a thrust at the bottom left and top right.
+
++ thrust: 0.01
+* Osideratio: 1
+* Owd: Osideratio * (1 + 2*Oover) * capheight
++ obot_ro: (1+thrust)*curve*Oht/2
++ otop_ro: (1+thrust)*curve*Oht/2
+
+Often, the inner ellipse is slightly rotated to the left of the vertical axis.
+
++ oblique: 2 *2*np.pi/360
++ center: Point(Owd/2+lft,Oht/2-Oover*capheight)
++ ibot_x: getXY(center,otop_y-thin-center.y,-np.pi/2+oblique)[0]
++ ibot_y: getXY(center,otop_y-thin-center.y,-np.pi/2+oblique)[1]
++ itop_x: getXY(center,otop_y-thin-center.y,np.pi/2+oblique)[0]
++ itop_y: getXY(center,otop_y-thin-center.y,np.pi/2+oblique)[1] 
++ ilft_x: getXY(center,ort_x-wide-center.x,np.pi+oblique)[0]
++ ilft_y: getXY(center,ort_x-wide-center.x,np.pi+oblique)[1]
++ irt_x: getXY(center,ort_x-wide-center.x,oblique)[0]
++ irt_y: getXY(center,ort_x-wide-center.x,oblique)[1]
++ ibot_phii: obot_phio + oblique *360/(2*np.pi)
++ itop_phii: otop_phio + oblique *360/(2*np.pi)
++ ilft_phii: olft_phio + oblique *360/(2*np.pi)
++ irt_phii: ort_phio + oblique *360/(2*np.pi)
+
+We can now finally look at some examples. For Venetian and Garalde fonts, the ~O~ is typically fairly circular, with medium contrast and relatively strong tilt, like so (this one is Centaur-like, Venetian):
+
+* contrast: 1/3
++ oblique: 23 *2*np.pi/360
+* Osideratio: 1
++ widen: 0.2
++ thrust: 0.02
+
+Over time, the ~O~ got more and more upright, with stronger contrast, and a more rectangular shape, which can be seen in an extreme way in the Didone fonts, as in this Bodoni-like example:
+
+* contrast: 1/7
++ oblique: 0
+* Osideratio: 0.8
+* wide: 0.13*em
++ widen: -0.1
++ thrust: 0
+
+Slab serif fonts have low contrast and squarish, upright forms:
+
+* contrast: 0.7
++ oblique: 0
+* Osideratio: 0.7
+* wide: 0.1*em
++ widen: 0
++ thrust: 0
+
+Sans serif fonts also need a subtle contrast to counteract illusion (1), and a circular ~O~ will have to be expanded horizontally to look perfectly circular, like in this geometric sans serif version:
+
+* contrast: 0.9
++ oblique: 0
+* Osideratio: 1.005
+* wide: 0.1*em
++ widen: 0
++ thrust: 0
+
+
